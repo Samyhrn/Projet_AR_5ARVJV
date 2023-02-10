@@ -4,63 +4,70 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using System.Linq;
+
+public class PlayerScore
+{
+    public string playerName;
+    public int score;
+}
 public class GameManager : MonoBehaviourPunCallbacks {
     
     [Header("Status")] 
     public bool gameEnded = false;
-    [Header("Players")] 
-    public string playerPrefabLocation; 
-    public Transform[] spawnPoints; 
-    public PlayerController[] players; 
-    private int playersInGame; 
-    private List<int> pickedSpawnIndex;
     [Header("Reference")] 
     public GameObject imageTarget;
+    public List<PlayerScore> playerScores = new List<PlayerScore>();
     //instance
     public static GameManager instance;
     private void Awake(){
         instance = this;
     }
-    private void Start(){
-        pickedSpawnIndex = new List<int>();
-        players = new PlayerController[PhotonNetwork.PlayerList.Length];
-        photonView.RPC("ImInGame", RpcTarget.AllBuffered);
-      //  DefaultObserverEventHandler.isTracking = false;
-    }
+
     private void Update(){
         // Debug.Log("is tracking "  + DefaultObserverEventHandler.isTracking);
         foreach (GameObject gameObj in GameObject.FindObjectsOfType(typeof(GameObject))){
             if (gameObj.name == "Player(Clone)"){
                 gameObj.transform.SetParent(imageTarget.transform);}
         }
-        for (int i = 1; i < imageTarget.transform.childCount; i++){
-         //   imageTarget.transform.GetChild(i).gameObject.SetActive(DefaultObserverEventHandler.isTracking);
+
+        foreach (var p in PhotonNetwork.PlayerList)
+        {
+            if (!playerScores.Any(x => x.playerName == p.NickName))
+            {
+                playerScores.Add(new PlayerScore { playerName = p.NickName, score = 0 });
+            }
+        }
+
+        foreach (var player in playerScores)
+        {
+            if (player.score == 10)
+            {
+                gameEnded = true;
+            }
         }
     }
+ 
+
+    
+    public void UpdateScore(string playerName, int score)
+    {
+        photonView.RPC("UpdateScoreOnNetwork", RpcTarget.All, playerName, score);
+    }
+ 
+
     [PunRPC]
-    void ImInGame(){
-        playersInGame++;
-        Debug.Log("Player added: ");
-        if(playersInGame == PhotonNetwork.PlayerList.Length){
-            SpawnPlayer();
-        }
+    void UpdateScoreOnNetwork(string playerName, int score)
+    {
+        var player = playerScores.FirstOrDefault(p => p.playerName == playerName);
+       
+        player.playerName = playerName;
+        player.score = score;
+       
+        playerScores.Sort((x, y) => y.score.CompareTo(x.score));
+
+       
     }
-    void SpawnPlayer(){
-        int rand = Random.Range(0, spawnPoints.Length);
-        while (pickedSpawnIndex.Contains(rand)){
-            rand = Random.Range(0, spawnPoints.Length);
-        }
-        pickedSpawnIndex.Add(rand);
-        GameObject playerObject = PhotonNetwork.Instantiate(playerPrefabLocation, spawnPoints[rand].position, Quaternion.identity);
-        //intialize the player
-        PlayerController playerScript = playerObject.GetComponent<PlayerController>();
-        playerScript.photonView.RPC("Initialize", RpcTarget.All, PhotonNetwork.LocalPlayer);
-    }
-    public PlayerController GetPlayer(int playerID){
-        //return players.First(x => x.id == playerID);
-        return players.First(x => x.photonView.Owner.ActorNumber == playerID);
-    }
-    public PlayerController GetPlayer(GameObject playerObj){
-        return players.First(x => x.gameObject == playerObj);
-    }
+   
+ 
+   
 }

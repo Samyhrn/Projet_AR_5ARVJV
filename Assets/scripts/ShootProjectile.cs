@@ -14,7 +14,6 @@ public class ShootProjectile : MonoBehaviourPunCallbacks
     public Camera ARCamera;
     public float shootForce = 10f;
     public float raycastLength = 1000000f;
-    private ScoreManager scoreManager;
     private PlayerScore playerExisting;
     public GameObject TargetPrefab;
     public GameObject ImageTarget;
@@ -22,8 +21,8 @@ public class ShootProjectile : MonoBehaviourPunCallbacks
     // Start is called before the first frame update
     void Start()
     {
-        scoreManager = GameObject.FindObjectOfType<ScoreManager>();
-        playerExisting = scoreManager.playerScores.FirstOrDefault(p => p.playerName == PhotonNetwork.LocalPlayer.NickName);
+        
+        playerExisting = GameManager.instance.playerScores.FirstOrDefault(p => p.playerName == PhotonNetwork.LocalPlayer.NickName);
         if (playerExisting == null)
         {
 
@@ -32,7 +31,7 @@ public class ShootProjectile : MonoBehaviourPunCallbacks
                 playerName = PhotonNetwork.LocalPlayer.NickName,
                 score = 0
             };
-            scoreManager.playerScores.Add(playerExisting);
+            GameManager.instance.playerScores.Add(playerExisting);
         }
         SpawnTarget();
 
@@ -76,7 +75,7 @@ public class ShootProjectile : MonoBehaviourPunCallbacks
         {
             
 
-            scoreManager.UpdateScoreOnNetwork(PhotonNetwork.LocalPlayer.NickName, playerExisting.score + 1);
+            GameManager.instance.UpdateScore(PhotonNetwork.LocalPlayer.NickName, playerExisting.score + 1);
             
             Debug.Log("the score of the player "+PhotonNetwork.LocalPlayer.NickName+" is "+playerExisting.score);
             StartCoroutine(DestroyTarget(hit.transform.gameObject));
