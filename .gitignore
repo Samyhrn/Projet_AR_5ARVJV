@@ -72,3 +72,4 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 Assets/Editor/Migration/com.ptc.vuforia.engine-10.13.3.tgz
 Packages/com.ptc.vuforia.engine-10.13.3.tgz
+ArTestApk_BackUpThisFolder_ButDontShipItWithYourGame
