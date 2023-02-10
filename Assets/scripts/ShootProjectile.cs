@@ -1,9 +1,11 @@
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.UI;
 using TMPro;
+
 
 
 public class ShootProjectile : MonoBehaviourPunCallbacks
@@ -13,11 +15,27 @@ public class ShootProjectile : MonoBehaviourPunCallbacks
     public float shootForce = 10f;
     public float raycastLength = 1000000f;
     private ScoreManager scoreManager;
-    
+    private PlayerScore playerExisting;
+    public GameObject TargetPrefab;
+    public GameObject ImageTarget;
+
     // Start is called before the first frame update
     void Start()
     {
         scoreManager = GameObject.FindObjectOfType<ScoreManager>();
+        playerExisting = scoreManager.playerScores.FirstOrDefault(p => p.playerName == PhotonNetwork.LocalPlayer.NickName);
+        if (playerExisting == null)
+        {
+
+            playerExisting = new PlayerScore()
+            {
+                playerName = PhotonNetwork.LocalPlayer.NickName,
+                score = 0
+            };
+            scoreManager.playerScores.Add(playerExisting);
+        }
+        SpawnTarget();
+
     }
 
     void Update()
@@ -27,6 +45,13 @@ public class ShootProjectile : MonoBehaviourPunCallbacks
         {
             Shoot();
         }
+    }
+    
+    public void SpawnTarget()
+    {
+        
+        GameObject target = PhotonNetwork.Instantiate(TargetPrefab.name,new Vector3(ImageTarget.transform.position.x+Random.Range(100f,250f),ImageTarget.transform.position.y,ImageTarget.transform.position.z+Random.Range(100f,250f)) ,
+            ImageTarget.transform.rotation);
     }
 
     // Fonction de tir du projectile depuis la caméra AR
@@ -49,11 +74,11 @@ public class ShootProjectile : MonoBehaviourPunCallbacks
         //if we hit object tagged target then destroy the target after 4 seconds
         if (hit.transform.tag == "Target")
         {
-            ScoreManager scoreManager = GameObject.FindObjectOfType<ScoreManager>();
-            scoreManager.UpdateScoreOnNetwork(PhotonNetwork.LocalPlayer.NickName, 1);
-            Debug.Log("the score of the player "+PhotonNetwork.LocalPlayer.NickName+" is "+scoreManager.playerScores[0].score);
+            
 
-
+            scoreManager.UpdateScoreOnNetwork(PhotonNetwork.LocalPlayer.NickName, playerExisting.score + 1);
+            
+            Debug.Log("the score of the player "+PhotonNetwork.LocalPlayer.NickName+" is "+playerExisting.score);
             StartCoroutine(DestroyTarget(hit.transform.gameObject));
             
             
@@ -67,7 +92,8 @@ public class ShootProjectile : MonoBehaviourPunCallbacks
     //destroy the target after 4 seconds
     IEnumerator DestroyTarget(GameObject target)
     {
-        yield return new WaitForSeconds(4);
+        yield return new WaitForSeconds(1);
         PhotonNetwork.Destroy(target);
+        SpawnTarget();
     }
 }

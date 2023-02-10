@@ -2,18 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
 using TMPro;
 
-public class ScoreUI : MonoBehaviour
+public class ScoreUI : MonoBehaviourPunCallbacks
 {
-    public TMP_Text scoreTextPrefab;
+    public TextMeshProUGUI scoreTextPrefab;
 
-    void Start() {
+    void Update() {
+        
         ScoreManager scoreManager = GameObject.FindObjectOfType<ScoreManager>();
+        
+        string textToShow = "";
+        //scoreTextPrefab = GameObject.Find("ScoreText").GetComponent<TextMeshProUGUI>();
         foreach (PlayerScore playerScore in scoreManager.playerScores) {
-            TMP_Text scoreText = Instantiate(scoreTextPrefab);
-            scoreText.text = playerScore.playerName + ": " + playerScore.score;
-            scoreText.transform.SetParent(transform);
+            textToShow += $"{playerScore.playerName} : {playerScore.score} points \n";
         }
+        scoreTextPrefab.SetText(textToShow);
     }
 }
