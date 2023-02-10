@@ -49,7 +49,7 @@ public class ShootProjectile : MonoBehaviourPunCallbacks
     public void SpawnTarget()
     {
         
-        GameObject target = PhotonNetwork.Instantiate(TargetPrefab.name,new Vector3(ImageTarget.transform.position.x+Random.Range(100f,250f),ImageTarget.transform.position.y,ImageTarget.transform.position.z+Random.Range(100f,250f)) ,
+        GameObject target = PhotonNetwork.Instantiate(TargetPrefab.name,new Vector3(ImageTarget.transform.position.x+Random.Range(-250f,250f),ImageTarget.transform.position.y,ImageTarget.transform.position.z+Random.Range(-250f,250f)) ,
             ImageTarget.transform.rotation);
     }
 

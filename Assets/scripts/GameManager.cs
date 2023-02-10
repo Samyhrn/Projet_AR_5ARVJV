@@ -4,6 +4,8 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using System.Linq;
+using TMPro;
+using UnityEngine.UIElements;
 
 public class PlayerScore
 {
@@ -16,6 +18,7 @@ public class GameManager : MonoBehaviourPunCallbacks {
     public bool gameEnded = false;
     [Header("Reference")] 
     public GameObject imageTarget;
+    public GameObject endScreen;
     public List<PlayerScore> playerScores = new List<PlayerScore>();
     //instance
     public static GameManager instance;
@@ -43,6 +46,8 @@ public class GameManager : MonoBehaviourPunCallbacks {
             if (player.score == 10)
             {
                 gameEnded = true;
+                StartCoroutine(OnGameEnded());
+                
             }
         }
     }
@@ -65,6 +70,13 @@ public class GameManager : MonoBehaviourPunCallbacks {
        
         playerScores.Sort((x, y) => y.score.CompareTo(x.score));
 
+       
+    }
+    
+    public IEnumerator OnGameEnded()
+    {
+        yield return new WaitForSeconds(3);
+        NetworkManager.instance.photonView.RPC("ChangeScene", RpcTarget.All, "main");
        
     }
    
